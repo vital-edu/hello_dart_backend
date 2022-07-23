@@ -1,2 +1,5 @@
-A sample command-line application with an entrypoint in `bin/`, library code
-in `lib/`, and example unit test in `test/`.
+# A simple dart backend
+
+## Secrets
+
+This project secrets are stored using [Git Secret](https://git-secret.io/). All the encrypted keys are stored in `.env.secret`.
