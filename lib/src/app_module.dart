@@ -1,6 +1,7 @@
 import 'package:backend/src/core/services/databases/postgres_database.dart';
 import 'package:backend/src/core/services/databases/remote_database.dart';
 import 'package:backend/src/core/services/dot_env/dot_env_services.dart';
+import 'package:backend/src/features/api_docs/open_api_documentation.dart';
 import 'package:backend/src/features/user/user_resource.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_modular/shelf_modular.dart';
@@ -20,6 +21,7 @@ class AppModule extends Module {
   List<ModularRoute> get routes {
     return [
       Route.get('/', () => Response.ok('Hello Wourld!')),
+      Route.get('/docs/**', openApiDocumentation),
       Route.resource(UserResource()),
     ];
   }
