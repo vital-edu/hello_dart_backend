@@ -1,3 +1,5 @@
+import 'package:backend/src/core/services/crypt/bcrypt_service.dart';
+import 'package:backend/src/core/services/crypt/crypt_service.dart';
 import 'package:backend/src/core/services/databases/postgres_database.dart';
 import 'package:backend/src/core/services/databases/remote_database.dart';
 import 'package:backend/src/core/services/dot_env/dot_env_services.dart';
@@ -14,6 +16,7 @@ class AppModule extends Module {
       Bind.singleton<RemoteDatabase>(
         (i) => PostgresDatabase(i()),
       ),
+      Bind.singleton<CryptService>((_) => BCryptService()),
     ];
   }
 

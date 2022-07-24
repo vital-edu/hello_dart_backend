@@ -1,4 +1,5 @@
 import 'package:backend/src/core/cuid.dart';
+import 'package:backend/src/core/services/crypt/crypt_service.dart';
 import 'package:backend/src/core/services/databases/remote_database.dart';
 import 'package:backend/src/core/services/utils.dart';
 import 'package:shelf/shelf.dart';
@@ -51,6 +52,8 @@ class UserResource extends Resource {
     params.removeWhere((key, value) => !allowedParams.contains(key));
     params['id'] = newCuid();
 
+    params['password'] = injector<CryptService>().encrypt(params['password']!);
+
     final query = 'INSERT INTO "User"(id, name, email, password) '
         'VALUES (@id, @name, @email, @password) '
         'RETURNING id, name, email, role, "createdAt", "updatedAt"';
@@ -71,6 +74,7 @@ class UserResource extends Resource {
     final changes = params.keys.map((key) => '$key = @$key').join(', ');
 
     params['id'] = userId;
+    params['password'] = injector<CryptService>().encrypt(params['password']!);
 
     final query = 'UPDATE "User" '
         'SET $changes '
