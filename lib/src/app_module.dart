@@ -12,7 +12,7 @@ class AppModule extends Module {
   @override
   List<Bind<Object>> get binds {
     return [
-      Bind.instance<DotEnvServices>(DotEnvServices.instance),
+      Bind.singleton<DotEnvServices>((_) => DotEnvServices()),
       Bind.singleton<RemoteDatabase>(
         (i) => PostgresDatabase(i()),
       ),

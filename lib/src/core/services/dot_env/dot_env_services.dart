@@ -3,7 +3,16 @@ import 'dart:io';
 class DotEnvServices {
   final Map<String, String> _map = {};
 
-  DotEnvServices._() {
+  DotEnvServices({Map<String, String>? mock}) {
+    if (mock != null) {
+      _map.addAll(mock);
+      return;
+    }
+
+    _init();
+  }
+
+  void _init() {
     final file = File('.env');
     final lines = file.readAsLinesSync();
 
@@ -12,8 +21,6 @@ class DotEnvServices {
       _map[parts[0]] = parts[1];
     }
   }
-
-  static final instance = DotEnvServices._();
 
   String? operator [](String key) => _map[key];
 }
