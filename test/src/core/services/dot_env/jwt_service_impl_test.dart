@@ -27,8 +27,8 @@ void main() {
 
     final payload = service.getPayload(token);
     expect(payload.keys, containsAll(['id', 'role', 'iat']));
-    expect(payload['id'], equals('user_id_test'));
-    expect(payload['role'], equals('user'));
+    expect(payload['id'], 'user_id_test');
+    expect(payload['role'], 'user');
 
     await Future.delayed(Duration(seconds: 1));
     expect(
