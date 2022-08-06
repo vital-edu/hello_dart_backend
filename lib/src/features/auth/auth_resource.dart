@@ -76,8 +76,8 @@ class AuthResource extends Resource {
     }, 'refreshToken');
 
     return Response.ok(jsonEncode({
-      'accessToken': accessToken,
-      'refreshToken': refreshToken,
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
     }));
   }
 
@@ -100,6 +100,6 @@ class AuthResource extends Resource {
   int _expirationInMinutes(Duration duration) {
     final durationSinceEpoch =
         DateTime.now().add(duration).millisecondsSinceEpoch;
-    return Duration(milliseconds: durationSinceEpoch).inMinutes;
+    return Duration(milliseconds: durationSinceEpoch).inSeconds;
   }
 }

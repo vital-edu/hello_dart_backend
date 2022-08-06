@@ -29,7 +29,8 @@ enum EnvKey {
   databaseUrl('DATABASE_URL'),
   jwtSecret('JWT_SECRET'),
   accessTokenExpirationTimeInMinutes('ACCESS_TOKEN_EXPIRATION_TIME_IN_MINUTES'),
-  refreshTokenExpirationTimeInMinutes('TOKEN_EXPIRATION_TIME_IN_MINUTES');
+  refreshTokenExpirationTimeInMinutes(
+      'REFRESH_TOKEN_EXPIRATION_TIME_IN_MINUTES');
 
   final String value;
 
