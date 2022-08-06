@@ -6,7 +6,7 @@ class JwtServiceImpl implements JwtService {
   final SecretKey _secret;
 
   JwtServiceImpl(DotEnvServices dotEnvServices)
-      : _secret = SecretKey(dotEnvServices['JWT_SECRET']!);
+      : _secret = SecretKey(dotEnvServices[EnvKey.jwtSecret]);
 
   @override
   String generateToken(Map info, String audience) {

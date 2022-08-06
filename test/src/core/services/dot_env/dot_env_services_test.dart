@@ -5,10 +5,10 @@ import 'package:test/scaffolding.dart';
 void main() {
   test('expect to retrieve env variable', () {
     final mock = {
-      'TEST_KEY': 'test value',
+      'JWT_SECRET': 'test value',
     };
 
     final service = DotEnvServices(mock: mock);
-    expect(service['TEST_KEY'], 'test value');
+    expect(service[EnvKey.jwtSecret], 'test value');
   });
 }

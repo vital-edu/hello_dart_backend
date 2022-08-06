@@ -14,29 +14,26 @@ class PostgresDatabase implements RemoteDatabase, Disposable {
   }
 
   Future<void> _init() async {
-    final dbUriString = dotEnvServices['DATABASE_URL'];
-    if (dbUriString == null) {
-      _completer.completeError(Exception('DATABASE_URL is not defined'));
-    } else {
-      final uri = Uri.parse(dbUriString);
-      final port = uri.port;
-      final host = uri.host;
-      final database = uri.pathSegments.first;
-      final usernameAndPasswird = uri.userInfo.split(':');
-      final username = usernameAndPasswird.first;
-      final password = usernameAndPasswird.last;
+    final dbUriString = dotEnvServices[EnvKey.databaseUrl];
 
-      final connection = PostgreSQLConnection(
-        host,
-        port,
-        database,
-        username: username,
-        password: password,
-      );
+    final uri = Uri.parse(dbUriString);
+    final port = uri.port;
+    final host = uri.host;
+    final database = uri.pathSegments.first;
+    final usernameAndPasswird = uri.userInfo.split(':');
+    final username = usernameAndPasswird.first;
+    final password = usernameAndPasswird.last;
 
-      await connection.open();
-      _completer.complete(connection);
-    }
+    final connection = PostgreSQLConnection(
+      host,
+      port,
+      database,
+      username: username,
+      password: password,
+    );
+
+    await connection.open();
+    _completer.complete(connection);
   }
 
   @override
