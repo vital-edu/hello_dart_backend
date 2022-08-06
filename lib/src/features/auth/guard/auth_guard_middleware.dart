@@ -13,10 +13,11 @@ class AuthGuardMiddleware extends ModularMiddleware {
 
       try {
         final token = extractorService.getAuthorizationBearer(request);
-        jwtService.verifyToken(token, 'authorization_token');
+        jwtService.verifyToken(token, 'accessToken');
         return handler(request);
       } catch (error) {
-        return Response.badRequest(
+        return Response(
+          401,
           body: jsonEncode({
             'error': '$error',
           }),
