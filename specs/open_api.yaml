@@ -3,9 +3,30 @@ info:
   title: API Data Backend
   version: '1.0'
 servers:
-  - url: http://127.0.0.1:8000
+  - url: http://0.0.0.0:8000
 
 paths:
+  /auth/login:
+    get:
+      security:
+        - basicAuth: []
+      tags:
+        - auth
+      summary: Authenticate user with credentials
+      operationId: authUser
+      responses:
+        '200':
+          description: User authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenization'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
   /user:
     get:
       tags:
@@ -110,7 +131,22 @@ paths:
                   $ref: "#/components/schemas/error"
 
 components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
   schemas:
+    tokenization:
+      type: object
+      properties:
+        refresh_token:
+            type: string
+            format: cuid
+            description: Refresh token
+        access_token:
+          type: string
+          format: cuid
+          description: Access token
     safe_user:
       type: object
       properties:

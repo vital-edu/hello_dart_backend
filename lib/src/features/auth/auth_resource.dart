@@ -4,6 +4,7 @@ import 'package:backend/src/core/services/crypt/crypt_service.dart';
 import 'package:backend/src/core/services/databases/remote_database.dart';
 import 'package:backend/src/core/services/dot_env/dot_env_services.dart';
 import 'package:backend/src/core/services/jwt/jwt_service.dart';
+import 'package:backend/src/core/services/request_extractor/request_extractor_service.dart';
 import 'package:backend/src/core/services/utils.dart';
 import 'package:backend/src/core/shared/list_extensions.dart';
 import 'package:shelf/shelf.dart';
@@ -12,28 +13,24 @@ import 'package:shelf_modular/shelf_modular.dart';
 class AuthResource extends Resource {
   @override
   List<Route> get routes => [
-        Route.post('auth/login', _login),
+        Route.get('auth/login', _login),
         Route.get('auth/refresh_token', _refreshToken),
         Route.get('auth/check_token', _checkToken),
         Route.delete('auth/logout', _logout),
         Route.put('auth/password', _changePassword),
       ];
 
-  FutureOr<Response> _login(ModularArguments args, Injector injector) async {
-    final String? email = args.queryParams['email'];
-    final String? rawPassword = args.queryParams['password'];
+  FutureOr<Response> _login(Request request, Injector injector) async {
+    final extractorService = injector.get<RequestExtractorService>();
 
-    if (email == null || rawPassword == null) {
-      return Response.badRequest(
-          body: jsonEncode({'error': 'Missing email or password'}));
-    }
+    final credentials = extractorService.getBasicAuthorization(request);
 
     final remoteDatabase = injector.get<RemoteDatabase>();
     final result = await remoteDatabase.query(
-      'SELECT id, name, email, role, password FROM "User"'
+      'SELECT password FROM "User"'
       'WHERE email = @email',
       parameters: {
-        'email': email,
+        'email': credentials.email,
       },
     );
 
@@ -44,8 +41,11 @@ class AuthResource extends Resource {
 
     final cryptService = injector.get<CryptService>();
 
-    if (!cryptService.match(rawPassword, user['password'])) {
-      return Response(401, body: jsonEncode({'error': 'Invalid credentials'}));
+    if (!cryptService.match(credentials.password, user['password'])) {
+      return Response(
+        401,
+        body: jsonEncode({'error': 'Invalid email or password'}),
+      );
     }
 
     final jwtService = injector.get<JwtService>();
@@ -70,9 +70,7 @@ class AuthResource extends Resource {
       'exp': refreshTokenDuration,
     }, 'refreshToken');
 
-    user.remove('password');
     return Response.ok(jsonEncode({
-      'user': user,
       'accessToken': accessToken,
       'refreshToken': refreshToken,
     }));
