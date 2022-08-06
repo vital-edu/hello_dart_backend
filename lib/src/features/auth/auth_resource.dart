@@ -7,6 +7,7 @@ import 'package:backend/src/core/services/jwt/jwt_service.dart';
 import 'package:backend/src/core/services/request_extractor/request_extractor_service.dart';
 import 'package:backend/src/core/services/utils.dart';
 import 'package:backend/src/core/shared/list_extensions.dart';
+import 'package:backend/src/features/auth/guard/auth_guard_middleware.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_modular/shelf_modular.dart';
 
@@ -15,7 +16,11 @@ class AuthResource extends Resource {
   List<Route> get routes => [
         Route.get('auth/login', _login),
         Route.get('auth/refresh_token', _refreshToken),
-        Route.get('auth/check_token', _checkToken),
+        Route.get(
+          'auth/check_token',
+          _checkToken,
+          middlewares: [AuthGuardMiddleware()],
+        ),
         Route.delete('auth/logout', _logout),
         Route.put('auth/password', _changePassword),
       ];
