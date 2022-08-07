@@ -92,44 +92,63 @@ class AuthResource extends Resource {
 
   FutureOr<Response> _changePassword(
       Injector injector, Request request, ModularArguments args) async {
-    final extractorService = injector.get<RequestExtractorService>();
-    final jwtService = injector.get<JwtService>();
+    final newRawPassword = args.data['new_password'];
+    final currentRawPassword = args.data['password'];
 
+    if (newRawPassword == null || currentRawPassword == null) {
+      return Response.badRequest(
+          body: jsonEncode({'error': 'Missing password'}));
+    }
+
+    if (newRawPassword == currentRawPassword) {
+      return Response.badRequest(
+          body: jsonEncode({'error': 'New password must be different'}));
+    }
+
+    final extractorService = injector.get<RequestExtractorService>();
     final token = extractorService.getAuthorizationBearer(request);
+
+    final jwtService = injector.get<JwtService>();
     final payload = jwtService.getPayload(token);
 
     final remoteDatabase = injector.get<RemoteDatabase>();
     final searchResult = await remoteDatabase.query(
-      'SELECT id, role FROM "User" '
+      'SELECT id, role, password FROM "User" '
       'WHERE id = @id',
       parameters: {
         'id': payload['id'],
       },
     );
 
-    final user = searchResult.safe(0)?['User'];
+    var user = searchResult.safe(0)?['User'];
     if (user == null) {
       return Response(401, body: jsonEncode({'error': 'Invalid credentials'}));
     }
 
-    final newRawPassword = args.data['password'];
-    if (newRawPassword == null) {
-      return Response.badRequest(
-          body: jsonEncode({'error': 'Missing password'}));
-    }
     final cryptService = injector.get<CryptService>();
-    final password = cryptService.encrypt(newRawPassword);
+    if (!cryptService.match(currentRawPassword, user['password'])) {
+      return Response(
+        401,
+        body: jsonEncode({'error': 'Invalid email or password'}),
+      );
+    }
 
-    await remoteDatabase.query(
+    final newPassword = cryptService.encrypt(newRawPassword);
+    final updateResult = await remoteDatabase.query(
       'UPDATE "User" '
       'SET password = @password '
       'WHERE id = @id '
       'RETURNING id, role',
       parameters: {
         'id': payload['id'],
-        'password': password,
+        'password': newPassword,
       },
     );
+
+    user = updateResult.safe(0)?['User'];
+    if (user == null) {
+      return Response(401, body: jsonEncode({'error': 'Invalid credentials'}));
+    }
 
     return Response(401,
         body: jsonEncode(_generateAuthPayload(user, injector)));
