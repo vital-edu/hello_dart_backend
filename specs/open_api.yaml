@@ -51,6 +51,8 @@ paths:
     get:
       tags:
       - User
+      security:
+        - basicAuth: []
       responses:
         '200':
           description: Get all users
@@ -99,6 +101,8 @@ paths:
     get:
       tags:
         - User
+      security:
+        - basicAuth: []
       responses:
         '200':
           description: Get a user
@@ -115,6 +119,8 @@ paths:
     put:
       tags:
         - User
+      security:
+        - basicAuth: []
       requestBody:
         content:
           application/json:
@@ -136,6 +142,8 @@ paths:
     delete:
       tags:
         - User
+      security:
+        - basicAuth: []
       responses:
           '200':
             description: Update a user

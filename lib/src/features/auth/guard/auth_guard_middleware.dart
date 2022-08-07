@@ -5,6 +5,10 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_modular/shelf_modular.dart';
 
 class AuthGuardMiddleware extends ModularMiddleware {
+  final List<String> _roles;
+
+  const AuthGuardMiddleware({List<String> roles = const []}) : _roles = roles;
+
   @override
   Handler call(Handler handler, [ModularRoute? route]) {
     return (Request request) {
@@ -14,6 +18,12 @@ class AuthGuardMiddleware extends ModularMiddleware {
       try {
         final token = extractorService.getAuthorizationBearer(request);
         jwtService.verifyToken(token, 'accessToken');
+
+        final payload = jwtService.getPayload(token);
+        if (_roles.isNotEmpty && !_roles.contains(payload['role'])) {
+          throw 'User not authorized';
+        }
+
         return handler(request);
       } catch (error) {
         return Response(

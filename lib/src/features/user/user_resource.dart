@@ -2,6 +2,7 @@ import 'package:backend/src/core/cuid.dart';
 import 'package:backend/src/core/services/crypt/crypt_service.dart';
 import 'package:backend/src/core/services/databases/remote_database.dart';
 import 'package:backend/src/core/services/utils.dart';
+import 'package:backend/src/features/auth/guard/auth_guard_middleware.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_modular/shelf_modular.dart';
 
@@ -9,11 +10,27 @@ class UserResource extends Resource {
   @override
   List<Route> get routes {
     return [
-      Route.get('/user', _getUsers),
+      Route.get(
+        '/user',
+        _getUsers,
+        middlewares: [AuthGuardMiddleware()],
+      ),
       Route.post('/user', _createUser),
-      Route.get('/user/:id', _getUser),
-      Route.put('/user/:id', _updateUser),
-      Route.delete('/user/:id', _deleteUser),
+      Route.get(
+        '/user/:id',
+        _getUser,
+        middlewares: [AuthGuardMiddleware()],
+      ),
+      Route.put(
+        '/user/:id',
+        _updateUser,
+        middlewares: [AuthGuardMiddleware()],
+      ),
+      Route.delete(
+        '/user/:id',
+        _deleteUser,
+        middlewares: [AuthGuardMiddleware()],
+      ),
     ];
   }
 
