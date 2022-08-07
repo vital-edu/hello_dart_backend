@@ -11,6 +11,11 @@ import 'package:backend/src/features/auth/infrastructure/user_dto.dart';
 abstract class AuthRepository {
   Future<Tokenization> login(UserCredentials credentials);
   Future<Tokenization> refreshToken(String token);
+  Future<Tokenization> updatePassword({
+    required String userId,
+    required String currentPassword,
+    required String newPassword,
+  });
   Future<UserDto> getUser(String id);
 }
 
@@ -53,6 +58,31 @@ class AuthRepositoryImpl implements AuthRepository {
 
     final user = await getUser(userId);
     return _generateToken(user);
+  }
+
+  @override
+  Future<Tokenization> updatePassword({
+    required String userId,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = await getUser(userId);
+
+    if (!crypt.match(currentPassword, user.password)) {
+      throw AuthException(401, 'Invalid password');
+    }
+
+    final newEncryptedPassword = crypt.encrypt(newPassword);
+    final updatedUser = await dataSource.updatePassword(
+      userId: userId,
+      newPassword: newEncryptedPassword,
+    );
+
+    if (updatedUser == null) {
+      throw AuthException(500, 'Unknown error');
+    }
+
+    return _generateToken(updatedUser);
   }
 
   @override

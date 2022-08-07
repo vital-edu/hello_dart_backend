@@ -5,6 +5,10 @@ import 'package:backend/src/features/auth/infrastructure/user_dto.dart';
 abstract class AuthDataSource {
   Future<UserDto?> getUserByEmail(String email);
   Future<UserDto?> getUserById(String id);
+  Future<UserDto?> updatePassword({
+    required String userId,
+    required String newPassword,
+  });
 }
 
 class AuthSqlDataSource implements AuthDataSource {
@@ -22,6 +26,24 @@ class AuthSqlDataSource implements AuthDataSource {
       },
     );
 
+    return _processResult(result);
+  }
+
+  @override
+  Future<UserDto?> updatePassword({
+    required String userId,
+    required String newPassword,
+  }) async {
+    final result = await database.query(
+      'UPDATE "User" '
+      'SET password = @password '
+      'WHERE id = @id '
+      'RETURNING id, role',
+      parameters: {
+        'id': userId,
+        'password': newPassword,
+      },
+    );
     return _processResult(result);
   }
 
