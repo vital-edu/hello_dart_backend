@@ -1,0 +1,109 @@
+components:
+  schemas:
+    tokenization:
+      type: object
+      properties:
+        refresh_token:
+            type: string
+            format: cuid
+            description: Refresh token
+        access_token:
+          type: string
+          format: cuid
+          description: Access token
+  Login:
+    get:
+      security:
+        - basicAuth: []
+      tags:
+        - auth
+      summary: Authenticate user with credentials
+      responses:
+        '200':
+          description: User authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenization'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: 'core.yaml#/components/schemas/error'
+  CheckToken:
+    get:
+      security:
+        - accessToken: []
+      tags:
+        - auth
+      summary: Verify authorization token
+      responses:
+        '200':
+          description: User authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenization'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: core.yaml#/components/schemas/error
+  RefreshToken:
+    get:
+      security:
+        - refreshToken: []
+      tags:
+        - auth
+      summary: Refresh authorization tokens
+      responses:
+        '200':
+          description: Authorization tokens refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenization'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: core.yaml#/components/schemas/error
+  ChangePassword:
+    put:
+      security:
+        - accessToken: []
+      tags:
+        - auth
+      summary: Change user's password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                new_password:
+                  type: string
+      responses:
+        '200':
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenization'
+        '400':
+          description: New password should be different from old password
+          content:
+            application/json:
+              schema:
+                $ref: core.yaml#/components/schemas/error
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: core.yaml#/components/schemas/error

@@ -1,0 +1,141 @@
+components:
+  schemas:
+    safe_user:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    user:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          default: user
+          enum:
+            - user
+            - admin
+            - manager
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+  GetAllOrCreate:
+    get:
+      tags:
+      - User
+      security:
+        - accessToken: []
+      responses:
+        '200':
+          description: Get all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/user"
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: core.yaml#/components/schemas/error
+    post:
+      tags:
+      - User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/safe_user"
+      responses:
+        '200':
+          description: Create a new user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: core.yaml#/components/schemas/error
+  Crud:
+    parameters:
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: cuid
+    get:
+      tags:
+        - User
+      security:
+        - accessToken: []
+      responses:
+        '200':
+          description: Get a user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: core.yaml#/components/schemas/error
+    put:
+      tags:
+        - User
+      security:
+        - accessToken: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/safe_user"
+      responses:
+        '200':
+          description: Update a user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: core.yaml#/components/schemas/error
+    delete:
+      tags:
+        - User
+      security:
+        - accessToken: []
+      responses:
+          '200':
+            description: Update a user
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/user"
+          '400':
+            description: Error
+            content:
+              application/json:
+                schema:
+                  $ref: core.yaml#/components/schemas/error
