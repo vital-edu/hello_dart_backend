@@ -1,4 +1,4 @@
-import 'package:backend/src/core/services/utils.dart';
+import 'dart:convert';
 
 class AuthException {
   final int code;
@@ -9,10 +9,9 @@ class AuthException {
 
   Map<String, Object> toMap() {
     return {
-      'code': code,
-      'message': message,
+      'error': message,
     };
   }
 
-  String toJson() => jsonEncode(toMap());
+  String toJson() => json.encode(toMap());
 }

@@ -31,11 +31,11 @@ class AuthResource extends Resource {
       ];
 
   FutureOr<Response> _login(Request request, Injector injector) async {
+    final authRepository = injector.get<AuthRepository>();
     final extractorService = injector.get<RequestExtractorService>();
     final credentials = extractorService.getBasicAuthorization(request);
 
     try {
-      final authRepository = injector.get<AuthRepository>();
       final result = await authRepository.login(credentials);
       return Response.ok(result.toJson());
     } on AuthException catch (error) {
