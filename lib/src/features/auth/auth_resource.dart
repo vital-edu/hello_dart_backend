@@ -23,7 +23,9 @@ class AuthResource extends Resource {
           AuthGuardMiddleware(),
         ]),
         Route.delete('auth/logout', _logout),
-        Route.put('auth/password', _changePassword),
+        Route.put('auth/password', _changePassword, middlewares: [
+          AuthGuardMiddleware(),
+        ]),
       ];
 
   FutureOr<Response> _login(Request request, Injector injector) async {
@@ -88,8 +90,49 @@ class AuthResource extends Resource {
     return Response.ok(jsonEncode({}));
   }
 
-  FutureOr<Response> _changePassword(Injector injector) {
-    return Response.ok(jsonEncode({}));
+  FutureOr<Response> _changePassword(
+      Injector injector, Request request, ModularArguments args) async {
+    final extractorService = injector.get<RequestExtractorService>();
+    final jwtService = injector.get<JwtService>();
+
+    final token = extractorService.getAuthorizationBearer(request);
+    final payload = jwtService.getPayload(token);
+
+    final remoteDatabase = injector.get<RemoteDatabase>();
+    final searchResult = await remoteDatabase.query(
+      'SELECT id, role FROM "User" '
+      'WHERE id = @id',
+      parameters: {
+        'id': payload['id'],
+      },
+    );
+
+    final user = searchResult.safe(0)?['User'];
+    if (user == null) {
+      return Response(401, body: jsonEncode({'error': 'Invalid credentials'}));
+    }
+
+    final newRawPassword = args.data['password'];
+    if (newRawPassword == null) {
+      return Response.badRequest(
+          body: jsonEncode({'error': 'Missing password'}));
+    }
+    final cryptService = injector.get<CryptService>();
+    final password = cryptService.encrypt(newRawPassword);
+
+    await remoteDatabase.query(
+      'UPDATE "User" '
+      'SET password = @password '
+      'WHERE id = @id '
+      'RETURNING id, role',
+      parameters: {
+        'id': payload['id'],
+        'password': password,
+      },
+    );
+
+    return Response(401,
+        body: jsonEncode(_generateAuthPayload(user, injector)));
   }
 
   int _expirationInMinutes(Duration duration) {
