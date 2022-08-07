@@ -38,7 +38,7 @@ class AuthSqlDataSource implements AuthDataSource {
       'UPDATE "User" '
       'SET password = @password '
       'WHERE id = @id '
-      'RETURNING id, role',
+      'RETURNING id, role, password',
       parameters: {
         'id': userId,
         'password': newPassword,

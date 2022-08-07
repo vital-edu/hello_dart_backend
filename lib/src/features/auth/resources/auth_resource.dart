@@ -86,7 +86,7 @@ class AuthResource extends Resource {
       );
       return Response.ok(result.toJson());
     } on AuthException catch (error) {
-      return Response(error.code, body: error.message);
+      return Response(error.code, body: error.toJson());
     }
   }
 }
