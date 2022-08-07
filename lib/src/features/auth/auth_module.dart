@@ -1,4 +1,5 @@
-import 'package:backend/src/features/auth/repositories/auth_repository.dart';
+import 'package:backend/src/features/auth/infrastructure/auth_data_source.dart';
+import 'package:backend/src/features/auth/infrastructure/auth_repository.dart';
 import 'package:backend/src/features/auth/resources/auth_resource.dart';
 import 'package:shelf_modular/shelf_modular.dart';
 
@@ -7,6 +8,7 @@ class AuthModule extends Module {
   List<Bind<Object>> get binds {
     return [
       Bind.singleton((i) => AuthRepository(i(), i(), i(), i(), i())),
+      Bind.singleton<AuthDataSource>((i) => AuthSqlDataSource(i())),
     ];
   }
 

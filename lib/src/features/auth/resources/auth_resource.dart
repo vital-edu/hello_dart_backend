@@ -10,7 +10,7 @@ import 'package:backend/src/core/shared/list_extensions.dart';
 import 'package:backend/src/features/auth/domain/auth_exception.dart';
 import 'package:backend/src/features/auth/domain/token_type.dart';
 import 'package:backend/src/features/auth/guard/auth_guard_middleware.dart';
-import 'package:backend/src/features/auth/repositories/auth_repository.dart';
+import 'package:backend/src/features/auth/infrastructure/auth_repository.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_modular/shelf_modular.dart';
 
