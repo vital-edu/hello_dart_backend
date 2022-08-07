@@ -15,15 +15,15 @@ import 'package:shelf_modular/shelf_modular.dart';
 class AuthResource extends Resource {
   @override
   List<Route> get routes => [
-        Route.get('auth/login', _login),
-        Route.get('auth/refresh_token', _refreshToken, middlewares: [
+        Route.get('login', _login),
+        Route.get('refresh_token', _refreshToken, middlewares: [
           AuthGuardMiddleware(tokenType: TokenType.refreshToken),
         ]),
-        Route.get('auth/check_token', _checkToken, middlewares: [
+        Route.get('check_token', _checkToken, middlewares: [
           AuthGuardMiddleware(),
         ]),
-        Route.delete('auth/logout', _logout),
-        Route.put('auth/password', _changePassword, middlewares: [
+        Route.delete('logout', _logout),
+        Route.put('password', _changePassword, middlewares: [
           AuthGuardMiddleware(),
         ]),
       ];
