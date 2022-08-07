@@ -6,15 +6,22 @@ import 'package:backend/src/features/auth/domain/auth_exception.dart';
 import 'package:backend/src/features/auth/domain/token_type.dart';
 import 'package:backend/src/features/auth/domain/tokenization.dart';
 import 'package:backend/src/features/auth/infrastructure/auth_data_source.dart';
+import 'package:backend/src/features/auth/infrastructure/user_dto.dart';
 
-class AuthRepository {
+abstract class AuthRepository {
+  Future<Tokenization> login(UserCredentials credentials);
+  Future<Tokenization> refreshToken(String token);
+  Future<UserDto> getUser(String id);
+}
+
+class AuthRepositoryImpl implements AuthRepository {
   final RequestExtractorService extractor;
   final JwtService jwt;
   final AuthDataSource dataSource;
   final CryptService crypt;
   final DotEnvServices env;
 
-  const AuthRepository(
+  const AuthRepositoryImpl(
     this.extractor,
     this.jwt,
     this.dataSource,
@@ -22,23 +29,44 @@ class AuthRepository {
     this.env,
   );
 
+  @override
   Future<Tokenization> login(UserCredentials credentials) async {
-    final user = await dataSource.getUser(credentials.email);
+    final user = await dataSource.getUserByEmail(credentials.email);
     if (user == null) {
       throw AuthException(401, 'Invalid credentials');
     }
 
     if (!crypt.match(credentials.password, user.password)) {
-      throw AuthException(
-        401,
-        'Invalid email or password',
-      );
+      throw AuthException(401, 'Invalid email or password');
     }
 
-    return _generateAuthPayload(user.toMap());
+    return _generateToken(user);
   }
 
-  Tokenization _generateAuthPayload(Map<String, dynamic> payload) {
+  @override
+  Future<Tokenization> refreshToken(String token) async {
+    final String? userId = jwt.getPayload(token)['id'];
+
+    if (userId == null) {
+      throw AuthException(401, 'Invalid credentials');
+    }
+
+    final user = await getUser(userId);
+    return _generateToken(user);
+  }
+
+  @override
+  Future<UserDto> getUser(String id) async {
+    final user = await dataSource.getUserById(id);
+    if (user == null) {
+      throw AuthException(401, 'Invalid credentials');
+    } else {
+      return user;
+    }
+  }
+
+  Tokenization _generateToken(UserDto user) {
+    final payload = user.toMap();
     final accessTokenExpirationInMinutes =
         int.parse(env[EnvKey.accessTokenExpirationTimeInMinutes]);
     final accessTokenDuration =

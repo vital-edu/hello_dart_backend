@@ -7,7 +7,9 @@ class AuthModule extends Module {
   @override
   List<Bind<Object>> get binds {
     return [
-      Bind.singleton((i) => AuthRepository(i(), i(), i(), i(), i())),
+      Bind.singleton<AuthRepository>(
+        (i) => AuthRepositoryImpl(i(), i(), i(), i(), i()),
+      ),
       Bind.singleton<AuthDataSource>((i) => AuthSqlDataSource(i())),
     ];
   }

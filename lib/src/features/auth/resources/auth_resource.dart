@@ -45,26 +45,15 @@ class AuthResource extends Resource {
 
   FutureOr<Response> _refreshToken(Injector injector, Request request) async {
     final extractorService = injector.get<RequestExtractorService>();
-    final jwtService = injector.get<JwtService>();
+    final authRepository = injector.get<AuthRepository>();
 
     final token = extractorService.getAuthorizationBearer(request);
-    final payload = jwtService.getPayload(token);
-
-    final remoteDatabase = injector.get<RemoteDatabase>();
-    final result = await remoteDatabase.query(
-      'SELECT id, role FROM "User"'
-      'WHERE id = @id',
-      parameters: {
-        'id': payload['id'],
-      },
-    );
-
-    final user = result.safe(0)?['User'];
-    if (user == null) {
-      return Response(401, body: jsonEncode({'error': 'Invalid credentials'}));
+    try {
+      final result = await authRepository.refreshToken(token);
+      return Response.ok(result.toJson());
+    } on AuthException catch (error) {
+      return Response(error.code, body: error.toJson());
     }
-
-    return Response.ok(jsonEncode(_generateAuthPayload(user, injector)));
   }
 
   FutureOr<Response> _checkToken(Injector injector) {
