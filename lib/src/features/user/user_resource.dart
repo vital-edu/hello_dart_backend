@@ -11,23 +11,23 @@ class UserResource extends Resource {
   List<Route> get routes {
     return [
       Route.get(
-        '/user',
+        '',
         _getUsers,
         middlewares: [AuthGuardMiddleware()],
       ),
-      Route.post('/user', _createUser),
+      Route.post('', _createUser),
       Route.get(
-        '/user/:id',
+        ':id',
         _getUser,
         middlewares: [AuthGuardMiddleware()],
       ),
       Route.put(
-        '/user/:id',
+        ':id',
         _updateUser,
         middlewares: [AuthGuardMiddleware()],
       ),
       Route.delete(
-        '/user/:id',
+        ':id',
         _deleteUser,
         middlewares: [AuthGuardMiddleware()],
       ),

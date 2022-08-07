@@ -7,23 +7,25 @@ import 'package:backend/src/core/services/jwt/jwt_service.dart';
 import 'package:backend/src/core/services/request_extractor/request_extractor_service.dart';
 import 'package:backend/src/core/services/utils.dart';
 import 'package:backend/src/core/shared/list_extensions.dart';
+import 'package:backend/src/features/auth/domain/auth_exception.dart';
 import 'package:backend/src/features/auth/domain/token_type.dart';
 import 'package:backend/src/features/auth/guard/auth_guard_middleware.dart';
+import 'package:backend/src/features/auth/repositories/auth_repository.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_modular/shelf_modular.dart';
 
 class AuthResource extends Resource {
   @override
   List<Route> get routes => [
-        Route.get('login', _login),
-        Route.get('refresh_token', _refreshToken, middlewares: [
+        Route.get('/login', _login),
+        Route.get('/refresh_token', _refreshToken, middlewares: [
           AuthGuardMiddleware(tokenType: TokenType.refreshToken),
         ]),
-        Route.get('check_token', _checkToken, middlewares: [
+        Route.get('/check_token', _checkToken, middlewares: [
           AuthGuardMiddleware(),
         ]),
-        Route.delete('logout', _logout),
-        Route.put('password', _changePassword, middlewares: [
+        Route.delete('/logout', _logout),
+        Route.put('/password', _changePassword, middlewares: [
           AuthGuardMiddleware(),
         ]),
       ];
@@ -32,30 +34,13 @@ class AuthResource extends Resource {
     final extractorService = injector.get<RequestExtractorService>();
     final credentials = extractorService.getBasicAuthorization(request);
 
-    final remoteDatabase = injector.get<RemoteDatabase>();
-    final result = await remoteDatabase.query(
-      'SELECT id, role, password FROM "User"'
-      'WHERE email = @email',
-      parameters: {
-        'email': credentials.email,
-      },
-    );
-
-    final user = result.safe(0)?['User'];
-    if (user == null) {
-      return Response(401, body: jsonEncode({'error': 'Invalid credentials'}));
+    try {
+      final authRepository = injector.get<AuthRepository>();
+      final result = await authRepository.login(credentials);
+      return Response.ok(result.toJson());
+    } on AuthException catch (error) {
+      return Response(error.code, body: error.toJson());
     }
-
-    final cryptService = injector.get<CryptService>();
-    if (!cryptService.match(credentials.password, user['password'])) {
-      return Response(
-        401,
-        body: jsonEncode({'error': 'Invalid email or password'}),
-      );
-    }
-
-    user.remove('password');
-    return Response.ok(jsonEncode(_generateAuthPayload(user, injector)));
   }
 
   FutureOr<Response> _refreshToken(Injector injector, Request request) async {
