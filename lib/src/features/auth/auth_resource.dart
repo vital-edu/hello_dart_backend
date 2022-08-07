@@ -27,12 +27,11 @@ class AuthResource extends Resource {
 
   FutureOr<Response> _login(Request request, Injector injector) async {
     final extractorService = injector.get<RequestExtractorService>();
-
     final credentials = extractorService.getBasicAuthorization(request);
 
     final remoteDatabase = injector.get<RemoteDatabase>();
     final result = await remoteDatabase.query(
-      'SELECT password FROM "User"'
+      'SELECT id, role, password FROM "User"'
       'WHERE email = @email',
       parameters: {
         'email': credentials.email,
@@ -45,7 +44,6 @@ class AuthResource extends Resource {
     }
 
     final cryptService = injector.get<CryptService>();
-
     if (!cryptService.match(credentials.password, user['password'])) {
       return Response(
         401,
@@ -53,32 +51,8 @@ class AuthResource extends Resource {
       );
     }
 
-    final jwtService = injector.get<JwtService>();
-    final envService = injector.get<DotEnvServices>();
-
-    final accessTokenExpirationInMinutes =
-        int.parse(envService[EnvKey.accessTokenExpirationTimeInMinutes]);
-    final accessTokenDuration =
-        _expirationInMinutes(Duration(minutes: accessTokenExpirationInMinutes));
-
-    final accessToken = jwtService.generateToken({
-      ...user,
-      'exp': accessTokenDuration,
-    }, 'accessToken');
-
-    final refreshTokenExpirationInMinutes =
-        int.parse(envService[EnvKey.refreshTokenExpirationTimeInMinutes]);
-    final refreshTokenDuration = _expirationInMinutes(
-        Duration(minutes: refreshTokenExpirationInMinutes));
-    final refreshToken = jwtService.generateToken({
-      ...user,
-      'exp': refreshTokenDuration,
-    }, 'refreshToken');
-
-    return Response.ok(jsonEncode({
-      'access_token': accessToken,
-      'refresh_token': refreshToken,
-    }));
+    user.remove('password');
+    return Response.ok(jsonEncode(_generateAuthPayload(user, injector)));
   }
 
   FutureOr<Response> _refreshToken(Injector injector) {
@@ -101,5 +75,35 @@ class AuthResource extends Resource {
     final durationSinceEpoch =
         DateTime.now().add(duration).millisecondsSinceEpoch;
     return Duration(milliseconds: durationSinceEpoch).inSeconds;
+  }
+
+  Map<String, dynamic> _generateAuthPayload(
+      Map<String, dynamic> payload, Injector injector) {
+    final jwtService = injector.get<JwtService>();
+    final envService = injector.get<DotEnvServices>();
+
+    final accessTokenExpirationInMinutes =
+        int.parse(envService[EnvKey.accessTokenExpirationTimeInMinutes]);
+    final accessTokenDuration =
+        _expirationInMinutes(Duration(minutes: accessTokenExpirationInMinutes));
+
+    final accessToken = jwtService.generateToken({
+      ...payload,
+      'exp': accessTokenDuration,
+    }, 'accessToken');
+
+    final refreshTokenExpirationInMinutes =
+        int.parse(envService[EnvKey.refreshTokenExpirationTimeInMinutes]);
+    final refreshTokenDuration = _expirationInMinutes(
+        Duration(minutes: refreshTokenExpirationInMinutes));
+    final refreshToken = jwtService.generateToken({
+      ...payload,
+      'exp': refreshTokenDuration,
+    }, 'refreshToken');
+
+    return {
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
+    };
   }
 }
