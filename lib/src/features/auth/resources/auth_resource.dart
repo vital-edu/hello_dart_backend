@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:backend/src/core/services/jwt/jwt_service.dart';
 import 'package:backend/src/core/services/request_extractor/request_extractor_service.dart';
 import 'package:backend/src/core/services/utils.dart';
 import 'package:backend/src/features/auth/domain/auth_exception.dart';
@@ -62,15 +61,15 @@ class AuthResource extends Resource {
 
   FutureOr<Response> _changePassword(
       Injector injector, Request request, ModularArguments args) async {
-    final newRawPassword = args.data['new_password'];
-    final currentRawPassword = args.data['password'];
+    final newPassword = args.data['new_password'];
+    final currentPassword = args.data['password'];
 
-    if (newRawPassword == null || currentRawPassword == null) {
+    if (currentPassword == null || newPassword == null) {
       return Response.badRequest(
           body: jsonEncode({'error': 'Missing password'}));
     }
 
-    if (newRawPassword == currentRawPassword) {
+    if (currentPassword == newPassword) {
       return Response.badRequest(
           body: jsonEncode({'error': 'New password must be different'}));
     }
@@ -78,17 +77,10 @@ class AuthResource extends Resource {
     final extractorService = injector.get<RequestExtractorService>();
     final token = extractorService.getAuthorizationBearer(request);
 
-    final jwtService = injector.get<JwtService>();
-    final payload = jwtService.getPayload(token);
-
     final authRepository = injector.get<AuthRepository>();
-
-    final userId = payload['id'];
-    final currentPassword = payload['password'];
-    final newPassword = payload['new_password'];
     try {
       final result = await authRepository.updatePassword(
-        userId: userId,
+        token: token,
         currentPassword: currentPassword,
         newPassword: newPassword,
       );

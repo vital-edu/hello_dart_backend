@@ -12,7 +12,7 @@ abstract class AuthRepository {
   Future<Tokenization> login(UserCredentials credentials);
   Future<Tokenization> refreshToken(String token);
   Future<Tokenization> updatePassword({
-    required String userId,
+    required String token,
     required String currentPassword,
     required String newPassword,
   });
@@ -62,12 +62,18 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Tokenization> updatePassword({
-    required String userId,
+    required String token,
     required String currentPassword,
     required String newPassword,
   }) async {
-    final user = await getUser(userId);
+    final payload = jwt.getPayload(token);
+    final userId = payload['id'];
 
+    if (userId == null) {
+      throw AuthException(401, 'Invalid credentials');
+    }
+
+    final user = await getUser(userId);
     if (!crypt.match(currentPassword, user.password)) {
       throw AuthException(401, 'Invalid password');
     }
