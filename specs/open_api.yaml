@@ -29,13 +29,33 @@ paths:
   /auth/check_token:
     get:
       security:
-        - bearerAuth: []
+        - accessToken: []
       tags:
         - auth
       summary: Verify authorization token
       responses:
         '200':
           description: User authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenization'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /auth/refresh_token:
+    get:
+      security:
+        - refreshToken: []
+      tags:
+        - auth
+      summary: Refresh authorization tokens
+      responses:
+        '200':
+          description: Authorization tokens refreshed
           content:
             application/json:
               schema:
@@ -163,10 +183,16 @@ components:
     basicAuth:
       type: http
       scheme: basic
-    bearerAuth:
+    accessToken:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: access token
+    refreshToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: refresh token
   schemas:
     tokenization:
       type: object
